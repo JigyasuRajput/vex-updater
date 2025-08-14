@@ -13,7 +13,7 @@ Thank you for your interest in contributing to the VEX Generate Tool! This docum
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/vex-generate-tool.git
+   git clone https://github.com/JigyasuRajput/vex-generate-tool.git
    cd vex-generate-tool
    ```
 

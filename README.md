@@ -19,7 +19,7 @@ For the fastest setup, use the provided setup script:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/vex-generate-tool.git
+git clone https://github.com/JigyasuRajput/vex-generate-tool.git
 cd vex-generate-tool
 
 # Quick setup for users
@@ -39,7 +39,7 @@ vex-generate-tool --help
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/vex-generate-tool.git
+git clone https://github.com/JigyasuRajput/vex-generate-tool.git
 cd vex-generate-tool
 
 # Create and activate virtual environment
@@ -60,7 +60,7 @@ pip install -e .
 pip install cyclonedx-python-lib>=3.0.0
 
 # Clone and install
-git clone https://github.com/your-username/vex-generate-tool.git
+git clone https://github.com/JigyasuRajput/vex-generate-tool.git
 cd vex-generate-tool
 pip install -e .
 ```
@@ -71,7 +71,7 @@ For contributing or development work:
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/vex-generate-tool.git
+git clone https://github.com/JigyasuRajput/vex-generate-tool.git
 cd vex-generate-tool
 
 # Create and activate virtual environment
