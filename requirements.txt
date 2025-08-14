@@ -1,0 +1,14 @@
+# VEX Generate Tool - Requirements
+# 
+# This file contains the runtime dependencies for the VEX Generate Tool.
+# For development dependencies, install with: pip install -e ".[test]"
+
+# Core dependencies for VEX document generation
+cyclonedx-python-lib>=3.0.0
+
+# PURL handling (automatically installed with cyclonedx-python-lib)
+packageurl-python>=0.11
+
+# Optional: For development and testing (can be installed separately)
+# pytest>=7.0.0
+# pytest-cov>=4.0.0

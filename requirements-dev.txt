@@ -1,0 +1,22 @@
+# VEX Generate Tool - Development Requirements
+# 
+# This file contains all dependencies needed for development, testing, and contributing.
+# Install with: pip install -r requirements-dev.txt
+
+# Include all runtime requirements
+-r requirements.txt
+
+# Testing framework
+pytest>=7.0.0
+pytest-cov>=4.0.0
+
+# Code quality tools
+black>=22.0.0
+flake8>=4.0.0
+isort>=5.10.0
+
+# Type checking
+mypy>=0.950
+
+# Development tools
+pre-commit>=2.17.0
