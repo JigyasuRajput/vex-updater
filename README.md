@@ -307,6 +307,6 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 
 ## Repository
 
-- **GitHub**: https://github.com/your-username/vex-generate-tool
-- **Issues**: https://github.com/your-username/vex-generate-tool/issues
-- **Pull Requests**: https://github.com/your-username/vex-generate-tool/pulls
+- **GitHub**: https://github.com/JigyasuRajput/vex-generate-tool
+- **Issues**: https://github.com/JigyasuRajput/vex-generate-tool/issues
+- **Pull Requests**: https://github.com/JigyasuRajput/vex-generate-tool/pulls
