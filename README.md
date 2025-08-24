@@ -295,7 +295,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for detailed contribution guidelines.
 
 ## License
 
-MIT License - see LICENSE file for details.
+This is a personal project with no specific license.
 
 ## Contributing
 

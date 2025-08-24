@@ -36,45 +36,63 @@ fi
 
 python3 -m venv .venv
 
+# Fix permissions for virtual environment activation script
+echo "🔧 Fixing virtual environment permissions..."
+chmod +x .venv/bin/activate
+
 # Activate virtual environment
 echo "🔧 Activating virtual environment..."
-source .venv/bin/activate
+if ! source .venv/bin/activate; then
+    echo "⚠️  Warning: Could not activate virtual environment automatically."
+    echo "   You may need to activate it manually: source .venv/bin/activate"
+    echo "   Or use the full path to pip: .venv/bin/pip"
+    
+    # Use the full path to pip instead
+    PIP_CMD=".venv/bin/pip"
+else
+    PIP_CMD="pip"
+fi
 
 # Upgrade pip
 echo "⬆️  Upgrading pip..."
-pip install --upgrade pip
+$PIP_CMD install --upgrade pip
 
 # Determine what to install based on arguments
 if [ "$1" = "dev" ]; then
     echo "🛠️  Installing development dependencies..."
-    pip install -r requirements-dev.txt
+    $PIP_CMD install -r requirements-dev.txt
 else
     echo "📋 Installing runtime dependencies..."
-    pip install -r requirements.txt
+    $PIP_CMD install -r requirements.txt
 fi
 
 # Install the package
 echo "🔧 Installing VEX Generate Tool..."
-pip install -e .
+$PIP_CMD install -e .
 
 echo ""
 echo "✅ Setup complete!"
 echo ""
 echo "To use the tool:"
 echo "1. Activate the virtual environment: source .venv/bin/activate"
+echo "   (If activation fails, use: .venv/bin/vex-generate-tool directly)"
 echo "2. Run the tool: vex-generate-tool --help"
 echo ""
 
 if [ "$1" = "dev" ]; then
     echo "Development setup complete! You can also:"
-    echo "• Run tests: pytest"
+    echo "• Run tests: .venv/bin/pytest"
     echo "• Run examples: ./examples.sh"
-    echo "• Check code quality: black vex_generate_tool/ tests/"
+    echo "• Check code quality: .venv/bin/black vex_generate_tool/ tests/"
     echo ""
 fi
 
 echo "🎯 Quick test:"
-.venv/bin/vex-generate-tool --version
+if command -v .venv/bin/vex-generate-tool &> /dev/null; then
+    .venv/bin/vex-generate-tool --version
+else
+    echo "⚠️  Tool not found in PATH. Try: .venv/bin/vex-generate-tool --version"
+fi
 
 echo ""
 echo "🚀 Ready to generate VEX documents!"
