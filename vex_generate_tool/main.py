@@ -1,5 +1,5 @@
 """
-Main CLI entry point for the VEX Generate Tool.
+Main CLI entry point for the VEX Edit Tool.
 """
 
 import argparse
@@ -7,36 +7,41 @@ import sys
 import json
 from typing import Optional
 
-from .generator import VEXGenerator, VEXStatus, VEXJustification
+from .generator import VEXEditor, VEXStatus, VEXJustification, VEXFormat
 
 
 def create_parser() -> argparse.ArgumentParser:
     """Create and configure the argument parser."""
     parser = argparse.ArgumentParser(
-        prog='vex-generate-tool',
-        description='Generate VEX documents in CycloneDX JSON format from cve-bin-tool output',
+        prog='vex-edit-tool',
+        description='Edit VEX documents in CycloneDX, CSAF, and OpenVEX JSON formats',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  # Generate VEX for not_affected status
-  vex-generate-tool --cve-bin-json input.json --vuln-id CVE-2021-44228 \\
+  # Generate new VEX for not_affected status from cve-bin-tool output
+  vex-edit-tool --cve-bin-json input.json --vuln-id CVE-2021-44228 \\
     --status not_affected --justification vulnerable_code_not_present \\
     --output vex_output.json
 
-  # Generate VEX for affected status
-  vex-generate-tool --cve-bin-json input.json --vuln-id CVE-2021-44228 \\
-    --status affected --impact-statement "This vulnerability affects our product."
+  # Edit existing VEX file
+  vex-edit-tool --input-vex existing.json --vuln-id CVE-2021-44228 \\
+    --status fixed --impact-statement "Patched in version 2.15.0"
 
-  # Output to stdout
-  vex-generate-tool --cve-bin-json input.json --vuln-id CVE-2021-44228 \\
-    --status fixed
+  # Generate new VEX for affected status
+  vex-edit-tool --cve-bin-json input.json --vuln-id CVE-2021-44228 \\
+    --status affected --impact-statement "This vulnerability affects our product."
         """
     )
     
-    parser.add_argument(
+    # Input source arguments (mutually exclusive)
+    input_group = parser.add_mutually_exclusive_group(required=True)
+    input_group.add_argument(
         '--cve-bin-json',
-        required=True,
-        help='Path to the JSON output file from cve-bin-tool'
+        help='Path to the JSON output file from cve-bin-tool (for generating new VEX)'
+    )
+    input_group.add_argument(
+        '--input-vex',
+        help='Path to existing VEX document to edit'
     )
     
     parser.add_argument(
@@ -75,7 +80,14 @@ Examples:
     
     parser.add_argument(
         '--output',
-        help='Path to save the generated VEX file (prints to stdout if not provided)'
+        help='Path to save the VEX file (prints to stdout if not provided, overwrites input if editing existing VEX)'
+    )
+    
+    parser.add_argument(
+        '--format',
+        choices=['cyclonedx', 'csaf', 'openvex'],
+        default='cyclonedx',
+        help='Output format for new VEX documents (default: cyclonedx)'
     )
     
     parser.add_argument(
@@ -92,6 +104,10 @@ def validate_arguments(args: argparse.Namespace) -> None:
     # Check if justification is required for not_affected status
     if args.status == VEXStatus.NOT_AFFECTED and not args.justification:
         raise ValueError("--justification is required when status is 'not_affected'")
+    
+    # Validate that either cve-bin-json or input-vex is provided
+    if not args.cve_bin_json and not args.input_vex:
+        raise ValueError("Either --cve-bin-json or --input-vex must be provided")
 
 
 def main() -> None:
@@ -103,21 +119,39 @@ def main() -> None:
         # Validate arguments
         validate_arguments(args)
         
-        # Create VEX generator
-        generator = VEXGenerator()
+        # Create VEX editor
+        editor = VEXEditor()
         
-        # Generate VEX document
-        vex_json = generator.generate_vex_from_file(
-            input_file=args.cve_bin_json,
-            vuln_id=args.vuln_id,
-            status=args.status,
-            justification=args.justification,
-            impact_statement=args.impact_statement
-        )
+        # Determine operation mode
+        if args.input_vex:
+            # Edit existing VEX file
+            vex_json = editor.edit_existing_vex_file(
+                input_file=args.input_vex,
+                vuln_id=args.vuln_id,
+                status=args.status,
+                justification=args.justification,
+                impact_statement=args.impact_statement,
+                output_file=args.output
+            )
+        else:
+            # Generate new VEX document from cve-bin-tool output
+            vex_json = editor.generate_vex_from_file(
+                input_file=args.cve_bin_json,
+                vuln_id=args.vuln_id,
+                status=args.status,
+                justification=args.justification,
+                impact_statement=args.impact_statement
+            )
         
         # Output the result
-        if args.output:
-            # Write to file
+        if args.input_vex and args.output:
+            # For VEX editing with explicit output, file already saved
+            print(f"VEX document edited successfully: {args.output}")
+        elif args.input_vex and not args.output:
+            # For VEX editing without explicit output, file was overwritten
+            print(f"VEX document edited successfully: {args.input_vex}")
+        elif args.output:
+            # For new VEX generation with output file
             with open(args.output, 'w', encoding='utf-8') as f:
                 # Parse and re-format for pretty printing
                 parsed_json = json.loads(vex_json)

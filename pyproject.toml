@@ -6,9 +6,9 @@ build-backend = "setuptools.build_meta"
 include = ["vex_generate_tool"]
 
 [project]
-name = "vex-generate-tool"
+name = "vex-edit-tool"
 version = "1.0.0"
-description = "A standalone tool for generating VEX documents in CycloneDX JSON format"
+description = "A standalone tool for editing VEX documents in CycloneDX, CSAF, and OpenVEX JSON formats"
 authors = [
     {name = "JigyasuRajput", email = "jigyasu2021@gmail.com"}
 ]
@@ -23,9 +23,11 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
 ]
 
 dependencies = [
+    "lib4vex>=0.2.0",
     "cyclonedx-python-lib>=3.0.0",
 ]
 
@@ -36,7 +38,7 @@ test = [
 ]
 
 [project.scripts]
-vex-generate-tool = "vex_generate_tool.main:main"
+vex-edit-tool = "vex_generate_tool.main:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

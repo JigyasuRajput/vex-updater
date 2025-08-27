@@ -1,15 +1,17 @@
-# VEX Generate Tool
+# VEX Edit Tool
 
-A standalone Python command-line tool for generating VEX (Vulnerability Exploitability eXchange) documents in CycloneDX JSON format from cve-bin-tool output.
+A standalone Python command-line tool for editing VEX (Vulnerability Exploitability eXchange) documents in CycloneDX, CSAF, and OpenVEX JSON formats from cve-bin-tool output or existing VEX documents.
 
 ## Features
 
 - **Standalone**: No dependency on cve-bin-tool - operates as an independent tool
-- **Standards Compliant**: Generates VEX documents compliant with CycloneDX 1.4 specification
+- **Multi-Format Support**: Edits VEX documents in CycloneDX, CSAF, and OpenVEX formats
+- **Edit Existing VEX**: Can edit existing VEX documents or generate new ones from cve-bin-tool output
+- **Standards Compliant**: Supports VEX documents compliant with CycloneDX 1.4, CSAF, and OpenVEX specifications  
 - **Comprehensive CLI**: Supports all VEX statuses and justifications
 - **Robust Error Handling**: Clear error messages for invalid inputs and missing files
 - **Flexible Output**: Output to file or stdout with pretty-printed JSON
-- **Well Tested**: Comprehensive test suite with 97% code coverage
+- **Well Tested**: Comprehensive test suite with high code coverage
 
 ## Installation
 
@@ -30,7 +32,7 @@ cd vex-generate-tool
 
 # Activate the environment and start using
 source .venv/bin/activate
-vex-generate-tool --help
+vex-edit-tool --help
 ```
 
 ### Manual Installation Options
@@ -46,7 +48,7 @@ cd vex-generate-tool
 python -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 
-# Install runtime dependencies
+# Install runtime dependencies  
 pip install -r requirements.txt
 
 # Install the tool in development mode
@@ -57,11 +59,11 @@ pip install -e .
 
 ```bash
 # Install only the runtime dependencies
-pip install cyclonedx-python-lib>=3.0.0
+pip install lib4vex>=0.2.0 cyclonedx-python-lib>=3.0.0
 
 # Clone and install
-git clone https://github.com/JigyasuRajput/vex-generate-tool.git
-cd vex-generate-tool
+git clone https://github.com/JigyasuRajput/vex-edit-tool.git
+cd vex-edit-tool
 pip install -e .
 ```
 
@@ -85,7 +87,7 @@ pip install -r requirements-dev.txt
 pip install -e .
 
 # Verify installation
-vex-generate-tool --help
+vex-edit-tool --help
 pytest
 ```
 
@@ -93,20 +95,33 @@ pytest
 
 ### Basic Usage
 
-Generate a VEX document from cve-bin-tool JSON output:
+Generate a new VEX document from cve-bin-tool JSON output:
 
 ```bash
-vex-generate-tool --cve-bin-json input.json --vuln-id CVE-2021-44228 --status not_affected --justification vulnerable_code_not_present --output vex_output.json
+vex-edit-tool --cve-bin-json input.json --vuln-id CVE-2021-44228 --status not_affected --justification vulnerable_code_not_present --output vex_output.json
+```
+
+Edit an existing VEX document:
+
+```bash
+vex-edit-tool --input-vex existing_vex.json --vuln-id CVE-2021-44228 --status fixed --impact-statement "Patched in version 2.15.0"
 ```
 
 ### Command Line Options
 
-- `--cve-bin-json`: (Required) Path to the JSON output file from cve-bin-tool
-- `--vuln-id`: (Required) The CVE identifier (e.g., CVE-2021-44228)
-- `--status`: (Required) VEX status (not_affected, affected, fixed, under_investigation)
-- `--justification`: (Optional, but required for not_affected) Justification for the status
-- `--impact-statement`: (Optional) Detailed description of the impact
-- `--output`: (Optional) Path to save the generated VEX file (prints to stdout if not provided)
+**Input Sources (choose one):**
+- `--cve-bin-json`: Path to the JSON output file from cve-bin-tool (for generating new VEX)
+- `--input-vex`: Path to existing VEX document to edit
+
+**Required Arguments:**
+- `--vuln-id`: The CVE identifier (e.g., CVE-2021-44228)
+- `--status`: VEX status (not_affected, affected, fixed, under_investigation)
+
+**Optional Arguments:**
+- `--justification`: Justification for the status (required for not_affected)
+- `--impact-statement`: Detailed description of the impact
+- `--output`: Path to save the VEX file (prints to stdout if not provided, overwrites input when editing)
+- `--format`: Output format for new VEX documents (cyclonedx, csaf, openvex - default: cyclonedx)
 
 ### Supported VEX Statuses
 
@@ -124,10 +139,10 @@ vex-generate-tool --cve-bin-json input.json --vuln-id CVE-2021-44228 --status no
 
 ## Examples
 
-### Example 1: Not Affected Status
+### Example 1: Generate New VEX - Not Affected Status
 
 ```bash
-vex-generate-tool --cve-bin-json sample_input.json \
+vex-edit-tool --cve-bin-json sample_input.json \
   --vuln-id CVE-2021-44228 \
   --status not_affected \
   --justification vulnerable_code_not_present \
@@ -135,30 +150,38 @@ vex-generate-tool --cve-bin-json sample_input.json \
   --output not_affected.json
 ```
 
-### Example 2: Affected Status
+### Example 2: Edit Existing VEX - Update Status to Fixed
 
 ```bash
-vex-generate-tool --cve-bin-json sample_input.json \
-  --vuln-id CVE-2021-44228 \
-  --status affected \
-  --impact-statement "This vulnerability affects our application severely." \
-  --output affected.json
-```
-
-### Example 3: Fixed Status
-
-```bash
-vex-generate-tool --cve-bin-json sample_input.json \
+vex-edit-tool --input-vex existing_vex.json \
   --vuln-id CVE-2021-44228 \
   --status fixed \
   --impact-statement "Vulnerability patched in version 2.15.0." \
   --output fixed.json
 ```
 
-### Example 4: Output to stdout
+### Example 3: Generate New VEX - Affected Status
 
 ```bash
-vex-generate-tool --cve-bin-json sample_input.json \
+vex-edit-tool --cve-bin-json sample_input.json \
+  --vuln-id CVE-2021-44228 \
+  --status affected \
+  --impact-statement "This vulnerability affects our application severely." \
+  --output affected.json
+```
+
+### Example 4: Edit Existing VEX In-Place
+
+```bash
+vex-edit-tool --input-vex existing_vex.json \
+  --vuln-id CVE-2021-44228 \
+  --status under_investigation
+```
+
+### Example 5: Output to stdout
+
+```bash
+vex-edit-tool --cve-bin-json sample_input.json \
   --vuln-id CVE-2021-44228 \
   --status under_investigation
 ```
@@ -185,9 +208,13 @@ The tool expects JSON input in the format produced by cve-bin-tool:
 }
 ```
 
-## Output Format
+## Output Formats
 
-The tool generates CycloneDX 1.4 compliant VEX documents:
+The tool supports multiple VEX document formats:
+
+### CycloneDX Format
+
+The tool can generate/edit CycloneDX 1.4 compliant VEX documents:
 
 ```json
 {
@@ -219,6 +246,14 @@ The tool generates CycloneDX 1.4 compliant VEX documents:
   ]
 }
 ```
+
+### CSAF Format Support
+
+Support for CSAF (Common Security Advisory Framework) VEX documents is planned for future releases.
+
+### OpenVEX Format Support  
+
+Support for OpenVEX format documents is planned for future releases.
 
 ## Testing
 
