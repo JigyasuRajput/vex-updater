@@ -8,15 +8,16 @@ import os
 import pytest
 from unittest.mock import patch, mock_open
 
-from vex_generate_tool.generator import VEXGenerator, VEXStatus, VEXJustification
+from vex_updater_tool.generator import VEXEditor
+from vex_updater_tool.vex_parser import VEXStatus, VEXJustification, VEXFormat
 
 
-class TestVEXGenerator:
-    """Test cases for VEXGenerator class."""
+class TestVEXEditor:
+    """Test cases for VEXEditor class."""
     
     def setup_method(self):
         """Set up test fixtures."""
-        self.generator = VEXGenerator()
+        self.editor = VEXEditor()
         self.sample_cve_data = {
             "components": [
                 {
@@ -62,23 +63,23 @@ class TestVEXGenerator:
     
     def test_validate_status_valid(self):
         """Test status validation with valid values."""
-        for status in VEXGenerator.VALID_STATUSES:
-            self.generator.validate_status(status)  # Should not raise
+        for status in VEXEditor.VALID_STATUSES:
+            self.editor.validate_status(status)  # Should not raise
     
     def test_validate_status_invalid(self):
         """Test status validation with invalid values."""
         with pytest.raises(ValueError, match="Invalid status"):
-            self.generator.validate_status("invalid_status")
+            self.editor.validate_status("invalid_status")
     
     def test_validate_justification_valid(self):
         """Test justification validation with valid values."""
-        for justification in VEXGenerator.VALID_JUSTIFICATIONS:
-            self.generator.validate_justification(justification)  # Should not raise
+        for justification in VEXEditor.VALID_JUSTIFICATIONS:
+            self.editor.validate_justification(justification)  # Should not raise
     
     def test_validate_justification_invalid(self):
         """Test justification validation with invalid values."""
         with pytest.raises(ValueError, match="Invalid justification"):
-            self.generator.validate_justification("invalid_justification")
+            self.editor.validate_justification("invalid_justification")
     
     def test_load_cve_bin_tool_data_valid_file(self):
         """Test loading valid cve-bin-tool JSON data."""
@@ -87,7 +88,7 @@ class TestVEXGenerator:
             temp_file = f.name
         
         try:
-            data = self.generator.load_cve_bin_tool_data(temp_file)
+            data = self.editor.load_cve_bin_tool_data(temp_file)
             assert data == self.sample_cve_data
         finally:
             os.unlink(temp_file)
@@ -95,7 +96,7 @@ class TestVEXGenerator:
     def test_load_cve_bin_tool_data_file_not_found(self):
         """Test loading from non-existent file."""
         with pytest.raises(FileNotFoundError):
-            self.generator.load_cve_bin_tool_data("non_existent_file.json")
+            self.editor.load_cve_bin_tool_data("non_existent_file.json")
     
     def test_load_cve_bin_tool_data_invalid_json(self):
         """Test loading invalid JSON data."""
@@ -105,7 +106,7 @@ class TestVEXGenerator:
         
         try:
             with pytest.raises(ValueError, match="Invalid JSON format"):
-                self.generator.load_cve_bin_tool_data(temp_file)
+                self.editor.load_cve_bin_tool_data(temp_file)
         finally:
             os.unlink(temp_file)
     
@@ -118,8 +119,8 @@ class TestVEXGenerator:
             temp_file = f.name
         
         try:
-            with pytest.raises(ValueError, match="must contain 'components' field"):
-                self.generator.load_cve_bin_tool_data(temp_file)
+            with pytest.raises(ValueError, match="must contain either 'components' or 'vulnerabilities' field"):
+                self.editor.load_cve_bin_tool_data(temp_file)
         finally:
             os.unlink(temp_file)
     
@@ -133,13 +134,13 @@ class TestVEXGenerator:
         
         try:
             with pytest.raises(ValueError, match="'components' field must be a list"):
-                self.generator.load_cve_bin_tool_data(temp_file)
+                self.editor.load_cve_bin_tool_data(temp_file)
         finally:
             os.unlink(temp_file)
     
     def test_find_component_with_vulnerability_found(self):
         """Test finding a component with a specific vulnerability."""
-        component = self.generator.find_component_with_vulnerability(
+        component = self.editor.find_component_with_vulnerability(
             self.sample_cve_data, "CVE-2021-44228"
         )
         assert component is not None
@@ -148,14 +149,14 @@ class TestVEXGenerator:
     
     def test_find_component_with_vulnerability_not_found(self):
         """Test finding a component with a non-existent vulnerability."""
-        component = self.generator.find_component_with_vulnerability(
+        component = self.editor.find_component_with_vulnerability(
             self.sample_cve_data, "CVE-9999-99999"
         )
         assert component is None
     
     def test_find_component_with_vulnerability_multiple_components(self):
         """Test finding the correct component among multiple components."""
-        component = self.generator.find_component_with_vulnerability(
+        component = self.editor.find_component_with_vulnerability(
             self.sample_cve_data_multiple, "CVE-2020-36518"
         )
         assert component is not None
@@ -169,7 +170,7 @@ class TestVEXGenerator:
             "version": "1.0.0"
         }
         
-        component = self.generator.create_cyclonedx_component(comp_data)
+        component = self.editor.create_cyclonedx_component(comp_data)
         assert component.name == "test-component"
         assert component.version == "1.0.0"
     
@@ -181,7 +182,7 @@ class TestVEXGenerator:
             "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
         }
         
-        component = self.generator.create_cyclonedx_component(comp_data)
+        component = self.editor.create_cyclonedx_component(comp_data)
         assert component.name == "log4j-core"
         assert component.version == "2.14.1"
         # Note: PURL testing might require additional setup
@@ -190,13 +191,13 @@ class TestVEXGenerator:
         """Test creating a component with missing fields."""
         comp_data = {}
         
-        component = self.generator.create_cyclonedx_component(comp_data)
+        component = self.editor.create_cyclonedx_component(comp_data)
         assert component.name == "unknown"
         assert component.version == "0.0.0"
     
     def test_create_vex_vulnerability_not_affected(self):
         """Test creating VEX vulnerability with not_affected status."""
-        vuln = self.generator.create_vex_vulnerability(
+        vuln = self.editor.create_vex_vulnerability(
             vuln_id="CVE-2021-44228",
             status=VEXStatus.NOT_AFFECTED,
             justification=VEXJustification.VULNERABLE_CODE_NOT_PRESENT,
@@ -209,7 +210,7 @@ class TestVEXGenerator:
     
     def test_create_vex_vulnerability_affected(self):
         """Test creating VEX vulnerability with affected status."""
-        vuln = self.generator.create_vex_vulnerability(
+        vuln = self.editor.create_vex_vulnerability(
             vuln_id="CVE-2021-44228",
             status=VEXStatus.AFFECTED,
             impact_statement="This affects our product."
@@ -222,7 +223,7 @@ class TestVEXGenerator:
     def test_create_vex_vulnerability_invalid_status(self):
         """Test creating VEX vulnerability with invalid status."""
         with pytest.raises(ValueError, match="Invalid status"):
-            self.generator.create_vex_vulnerability(
+            self.editor.create_vex_vulnerability(
                 vuln_id="CVE-2021-44228",
                 status="invalid_status"
             )
@@ -230,7 +231,7 @@ class TestVEXGenerator:
     def test_create_vex_vulnerability_invalid_justification(self):
         """Test creating VEX vulnerability with invalid justification."""
         with pytest.raises(ValueError, match="Invalid justification"):
-            self.generator.create_vex_vulnerability(
+            self.editor.create_vex_vulnerability(
                 vuln_id="CVE-2021-44228",
                 status=VEXStatus.NOT_AFFECTED,
                 justification="invalid_justification"
@@ -238,7 +239,7 @@ class TestVEXGenerator:
     
     def test_generate_vex_document_not_affected(self):
         """Test generating complete VEX document for not_affected status."""
-        vex_json = self.generator.generate_vex_document(
+        vex_json = self.editor.generate_vex_document(
             cve_bin_data=self.sample_cve_data,
             vuln_id="CVE-2021-44228",
             status=VEXStatus.NOT_AFFECTED,
@@ -268,7 +269,7 @@ class TestVEXGenerator:
     def test_generate_vex_document_vulnerability_not_found(self):
         """Test generating VEX document for non-existent vulnerability."""
         with pytest.raises(ValueError, match="Vulnerability .* not found"):
-            self.generator.generate_vex_document(
+            self.editor.generate_vex_document(
                 cve_bin_data=self.sample_cve_data,
                 vuln_id="CVE-9999-99999",
                 status=VEXStatus.NOT_AFFECTED
@@ -281,7 +282,7 @@ class TestVEXGenerator:
             temp_file = f.name
         
         try:
-            vex_json = self.generator.generate_vex_from_file(
+            vex_json = self.editor.generate_vex_from_file(
                 input_file=temp_file,
                 vuln_id="CVE-2021-44228",
                 status=VEXStatus.FIXED
@@ -296,10 +297,10 @@ class TestVEXGenerator:
     
     def test_all_statuses_work(self):
         """Test that all valid statuses can be used to generate VEX documents."""
-        for status in VEXGenerator.VALID_STATUSES:
+        for status in VEXEditor.VALID_STATUSES:
             justification = VEXJustification.VULNERABLE_CODE_NOT_PRESENT if status == VEXStatus.NOT_AFFECTED else None
             
-            vex_json = self.generator.generate_vex_document(
+            vex_json = self.editor.generate_vex_document(
                 cve_bin_data=self.sample_cve_data,
                 vuln_id="CVE-2021-44228",
                 status=status,
@@ -313,8 +314,8 @@ class TestVEXGenerator:
     
     def test_all_justifications_work(self):
         """Test that all valid justifications can be used."""
-        for justification in VEXGenerator.VALID_JUSTIFICATIONS:
-            vex_json = self.generator.generate_vex_document(
+        for justification in VEXEditor.VALID_JUSTIFICATIONS:
+            vex_json = self.editor.generate_vex_document(
                 cve_bin_data=self.sample_cve_data,
                 vuln_id="CVE-2021-44228",
                 status=VEXStatus.NOT_AFFECTED,
