@@ -3,12 +3,12 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["vex_generate_tool"]
+include = ["vex_updater_tool"]
 
 [project]
-name = "vex-edit-tool"
+name = "vex-updater"
 version = "1.0.0"
-description = "A standalone tool for editing VEX documents in CycloneDX, CSAF, and OpenVEX JSON formats"
+description = "A standalone tool for updating VEX documents by comparing scan reports with existing VEX files"
 authors = [
     {name = "JigyasuRajput", email = "jigyasu2021@gmail.com"}
 ]
@@ -38,15 +38,15 @@ test = [
 ]
 
 [project.scripts]
-vex-edit-tool = "vex_generate_tool.main:main"
+vex-updater = "vex_updater_tool.main:main"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
-addopts = "--cov=vex_generate_tool --cov-report=term-missing --cov-report=html"
+addopts = "--cov=vex_updater_tool --cov-report=term-missing --cov-report=html"
 
 [tool.coverage.run]
-source = ["vex_generate_tool"]
+source = ["vex_updater_tool"]
 omit = ["*/tests/*"]

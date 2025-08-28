@@ -1,17 +1,49 @@
-# VEX Edit Tool
+# VEX Updater Tool
 
-A standalone Python command-line tool for editing VEX (Vulnerability Exploitability eXchange) documents in CycloneDX, CSAF, and OpenVEX JSON formats from cve-bin-tool output or existing VEX documents.
+A standalone Python command-line tool for **updating VEX (Vulnerability Exploitability eXchange) documents** by comparing security scan reports with existing VEX files. Features component-granular vulnerability triage, multi-format support, and intelligent workflow automation.
 
-## Features
+## 🔄 Workflow Overview
 
-- **Standalone**: No dependency on cve-bin-tool - operates as an independent tool
-- **Multi-Format Support**: Edits VEX documents in CycloneDX, CSAF, and OpenVEX formats
-- **Edit Existing VEX**: Can edit existing VEX documents or generate new ones from cve-bin-tool output
-- **Standards Compliant**: Supports VEX documents compliant with CycloneDX 1.4, CSAF, and OpenVEX specifications  
-- **Comprehensive CLI**: Supports all VEX statuses and justifications
-- **Robust Error Handling**: Clear error messages for invalid inputs and missing files
-- **Flexible Output**: Output to file or stdout with pretty-printed JSON
-- **Well Tested**: Comprehensive test suite with high code coverage
+![VEX Updater Workflow](docs/images/vex_updater.png)
+
+*The VEX Updater workflow: comparing scan reports with existing VEX documents to identify and triage new vulnerabilities.*
+
+## ✨ Key Features
+
+- **🎯 Component-Granular Triage**: Handle the same CVE differently across multiple components
+- **🔄 Intelligent Updates**: Compare scan reports with existing VEX documents to identify changes
+- **🎨 Interactive Triage**: User-friendly guided process for vulnerability assessment
+- **🔒 Safety First**: Dry-run, diff-only, and backup options prevent accidental data loss
+- **🏗️ Multi-Format Support**: CycloneDX, CSAF, and OpenVEX via lib4vex integration
+- **⚡ Smart Automation**: Batch processing with customizable default decisions
+- **📊 Rich Reporting**: Detailed diff analysis and progress tracking
+- **🧪 Battle-Tested**: Comprehensive test suite with high code coverage
+
+## 🚀 Quick Start
+
+1. **Run your security scan:**
+   ```bash
+   cve-bin-tool . --format json -o scan_results.json
+   ```
+
+2. **Update your VEX document:**
+   ```bash
+   vex-updater --scan-report scan_results.json --vex-file my_project.vex
+   ```
+
+3. **Follow the interactive prompts** to triage new vulnerabilities found in the scan.
+
+That's it! Your VEX document now reflects the latest security analysis.
+
+## 📘 Component-Granular Triage Explained
+
+The VEX Updater understands that **the same CVE can affect different components in different ways**:
+
+![Component-Granular CVE Analysis](docs/images/cve-component.png)
+
+*Example: CVE-2021-44228 (Log4j vulnerability) affects different components differently, requiring component-specific triage decisions.*
+
+This granular approach ensures accurate vulnerability documentation at the component level, enabling precise risk assessment and remediation planning.
 
 ## Installation
 
@@ -21,8 +53,8 @@ For the fastest setup, use the provided setup script:
 
 ```bash
 # Clone the repository
-git clone https://github.com/JigyasuRajput/vex-generate-tool.git
-cd vex-generate-tool
+git clone https://github.com/JigyasuRajput/vex-updater.git
+cd vex-updater-tool
 
 # Quick setup for users
 ./setup.sh
@@ -32,7 +64,7 @@ cd vex-generate-tool
 
 # Activate the environment and start using
 source .venv/bin/activate
-vex-edit-tool --help
+vex-updater --help
 ```
 
 ### Manual Installation Options
@@ -41,8 +73,8 @@ vex-edit-tool --help
 
 ```bash
 # Clone the repository
-git clone https://github.com/JigyasuRajput/vex-generate-tool.git
-cd vex-generate-tool
+git clone https://github.com/JigyasuRajput/vex-updater.git
+cd vex-updater-tool
 
 # Create and activate virtual environment
 python -m venv .venv
@@ -62,7 +94,7 @@ pip install -e .
 pip install lib4vex>=0.2.0 cyclonedx-python-lib>=3.0.0
 
 # Clone and install
-git clone https://github.com/JigyasuRajput/vex-edit-tool.git
+git clone https://github.com/JigyasuRajput/vex-updater.git
 cd vex-edit-tool
 pip install -e .
 ```
@@ -73,7 +105,7 @@ For contributing or development work:
 
 ```bash
 # Clone the repository
-git clone https://github.com/JigyasuRajput/vex-generate-tool.git
+git clone https://github.com/JigyasuRajput/vex-updater.git
 cd vex-generate-tool
 
 # Create and activate virtual environment
@@ -87,40 +119,79 @@ pip install -r requirements-dev.txt
 pip install -e .
 
 # Verify installation
-vex-edit-tool --help
+vex-updater --help
 pytest
 ```
 
 ## Usage
 
-### Basic Usage
+### 🎯 Primary Workflow: Update Existing VEX Documents
 
-Generate a new VEX document from cve-bin-tool JSON output:
-
+**Interactive Mode (Recommended):**
 ```bash
-vex-edit-tool --cve-bin-json input.json --vuln-id CVE-2021-44228 --status not_affected --justification vulnerable_code_not_present --output vex_output.json
+# Update VEX with new scan results
+vex-updater --scan-report latest_scan.json --vex-file project_vex.json
+
+# Safe update with backup
+vex-updater --scan-report latest_scan.json --vex-file project_vex.json --backup
+
+# Output to new file (preserves original)
+vex-updater --scan-report latest_scan.json --vex-file project_vex.json --output-file updated_vex.json
 ```
 
-Edit an existing VEX document:
+**Preview Mode (Explore Changes First):**
+```bash
+# See what would change without making modifications
+vex-updater --scan-report latest_scan.json --vex-file project_vex.json --dry-run
+
+# Show detailed diff analysis
+vex-updater --scan-report latest_scan.json --vex-file project_vex.json --diff-only
+```
+
+**Batch Processing:**
+```bash
+# Skip interactive prompts for existing vulnerabilities
+vex-updater --scan-report latest_scan.json --vex-file project_vex.json --auto-skip-existing
+```
+
+### 🔧 Single Vulnerability Updates
+
+The tool supports single-vulnerability edits:
 
 ```bash
-vex-edit-tool --input-vex existing_vex.json --vuln-id CVE-2021-44228 --status fixed --impact-statement "Patched in version 2.15.0"
+# Edit existing VEX document
+vex-updater --input-vex existing_vex.json --vuln-id CVE-2021-44228 --status fixed --impact-statement "Patched in version 2.15.0"
+
+# Generate new VEX from scan
+vex-updater --cve-bin-json input.json --vuln-id CVE-2021-44228 --status not_affected --justification vulnerable_code_not_present --output vex_output.json
 ```
 
 ### Command Line Options
 
-**Input Sources (choose one):**
-- `--cve-bin-json`: Path to the JSON output file from cve-bin-tool (for generating new VEX)
-- `--input-vex`: Path to existing VEX document to edit
+**Primary Updater Workflow:**
+- `--scan-report`: Path to cve-bin-tool JSON output (required)
+- `--vex-file`: Path to existing VEX file to update (required)
+- `--output-file`: Path for updated VEX file (optional, defaults to new file with .updated.json suffix)
 
-**Required Arguments:**
+**Safety and Operation Modes:**
+- `--dry-run`: Show what would be updated without making changes
+- `--diff-only`: Just show the diff without prompting for updates
+- `--in-place, -i`: Overwrite the original VEX file (requires explicit flag for safety)
+- `--backup`: Create backup of original VEX file before modification
+- `--interactive`: Use interactive triage session (default)
+- `--auto-skip-existing`: Don't prompt for vulnerabilities already in VEX
+
+**Single Vulnerability Mode Options:**
+- `--cve-bin-json`: Path to JSON output from cve-bin-tool
+- `--input-vex`: Path to existing VEX document to edit
 - `--vuln-id`: The CVE identifier (e.g., CVE-2021-44228)
 - `--status`: VEX status (not_affected, affected, fixed, under_investigation)
-
-**Optional Arguments:**
 - `--justification`: Justification for the status (required for not_affected)
 - `--impact-statement`: Detailed description of the impact
-- `--output`: Path to save the VEX file (prints to stdout if not provided, overwrites input when editing)
+
+**Utility Options:**
+- `--explain`: Show detailed explanations (status, justification, format, workflow, best-practices)
+- `--validate-only`: Validate inputs without making changes
 - `--format`: Output format for new VEX documents (cyclonedx, csaf, openvex - default: cyclonedx)
 
 ### Supported VEX Statuses
@@ -139,51 +210,72 @@ vex-edit-tool --input-vex existing_vex.json --vuln-id CVE-2021-44228 --status fi
 
 ## Examples
 
-### Example 1: Generate New VEX - Not Affected Status
+### 🎯 Primary Workflow Examples
 
+**Example 1: First-Time VEX Update (Interactive)**
 ```bash
-vex-edit-tool --cve-bin-json sample_input.json \
+# Update project VEX with latest scan results
+vex-updater --scan-report security_scan_2024.json --vex-file project_security.vex
+
+# The tool will guide you through triaging new vulnerabilities:
+# 🔍 CVE-2024-1234 for component-a v1.2.3
+# 📦 Component: component-a v1.2.3  
+# Action: [t]riage, [s]kip, [q]uit: t
+# Status: 1. not_affected, 2. affected, 3. fixed, 4. under_investigation
+# Select status (1-4): 1
+# Justification: 1. vulnerable_code_not_present...
+```
+
+**Example 2: Safe Production Update**
+```bash
+# Create backup and output to new file
+vex-updater --scan-report weekly_scan.json \
+  --vex-file production.vex \
+  --output-file production_updated.vex \
+  --backup
+```
+
+**Example 3: Preview Changes Before Applying**
+```bash
+# See what would change without modifications
+vex-updater --scan-report latest_scan.json --vex-file current.vex --dry-run
+
+# 📋 DRY RUN RESULTS:
+# =================================
+# 🆕 New vulnerabilities to add: 3
+# 🗑️  Vulnerabilities no longer in scan: 1
+# ✅ Vulnerabilities up to date: 12
+```
+
+**Example 4: Multi-Component Scenario**
+```bash
+# Handle same CVE affecting multiple components differently
+vex-updater --scan-report microservices_scan.json --vex-file services.vex
+
+# CVE-2021-44228 in log4j-core@2.14.1     → Set as "affected" 
+# CVE-2021-44228 in log4j-api@2.14.1      → Set as "not_affected"
+# CVE-2021-44228 in elasticsearch@7.15.0  → Set as "fixed"
+```
+
+### 🔧 Single Vulnerability Mode Examples
+
+**Example 5: Single Vulnerability Update**
+```bash
+# Update specific vulnerability in existing VEX
+vex-updater --input-vex existing_vex.json \
+  --vuln-id CVE-2021-44228 \
+  --status fixed \
+  --impact-statement "Patched in version 2.15.0"
+```
+
+**Example 6: Generate New VEX Entry**
+```bash
+# Add single vulnerability to new VEX document
+vex-updater --cve-bin-json scan_results.json \
   --vuln-id CVE-2021-44228 \
   --status not_affected \
   --justification vulnerable_code_not_present \
-  --impact-statement "The vulnerable function is never called in our product." \
-  --output not_affected.json
-```
-
-### Example 2: Edit Existing VEX - Update Status to Fixed
-
-```bash
-vex-edit-tool --input-vex existing_vex.json \
-  --vuln-id CVE-2021-44228 \
-  --status fixed \
-  --impact-statement "Vulnerability patched in version 2.15.0." \
-  --output fixed.json
-```
-
-### Example 3: Generate New VEX - Affected Status
-
-```bash
-vex-edit-tool --cve-bin-json sample_input.json \
-  --vuln-id CVE-2021-44228 \
-  --status affected \
-  --impact-statement "This vulnerability affects our application severely." \
-  --output affected.json
-```
-
-### Example 4: Edit Existing VEX In-Place
-
-```bash
-vex-edit-tool --input-vex existing_vex.json \
-  --vuln-id CVE-2021-44228 \
-  --status under_investigation
-```
-
-### Example 5: Output to stdout
-
-```bash
-vex-edit-tool --cve-bin-json sample_input.json \
-  --vuln-id CVE-2021-44228 \
-  --status under_investigation
+  --output single_vuln.json
 ```
 
 ## Input Format
@@ -276,22 +368,70 @@ The test suite includes:
 - **Error Handling**: Invalid inputs, missing files, edge cases
 - **Integration Tests**: End-to-end functionality testing
 
-## Project Structure
+## 🏗️ Architecture Overview
+
+The VEX Updater follows a modular architecture with clear separation of concerns:
 
 ```
-vex-generate-tool/
-├── vex_generate_tool/
-│   ├── __init__.py
-│   ├── main.py         # CLI entry point and argument parsing
-│   └── generator.py    # Core logic for VEX document generation
-├── tests/
-│   ├── __init__.py
-│   ├── test_generator.py # Tests for the VEX generation logic
-│   └── test_main.py      # Tests for the CLI
-├── pyproject.toml      # Project metadata and dependencies
-├── README.md           # This file
-├── sample_input.json   # Example input file
-└── examples.sh         # Comprehensive examples script
+vex-updater-tool/
+├── vex_updater_tool/              # Main package
+│   ├── main.py                    # 🚪 CLI entry point and orchestration
+│   ├── updater.py                 # 🎯 Main orchestrator (coordinates all operations)
+│   ├── scan_parser.py             # 📊 Parse cve-bin-tool outputs  
+│   ├── vex_parser.py              # 📋 Multi-format VEX document handling
+│   ├── diff_engine.py             # 🔍 Component-granular diff analysis
+│   ├── interactive_triage.py      # 🎨 User interaction and triage sessions
+│   ├── user_guidance.py           # 📚 Help and best practices
+│   └── error_handling.py          # 🛡️ Robust error management
+├── tests/                         # 🧪 Comprehensive test suite
+│   ├── test_updater.py           # Core updater functionality
+│   ├── test_diff_engine.py       # Diff analysis logic
+│   ├── test_generator.py         # Generator functionality tests
+│   └── test_main.py              # CLI interface tests
+├── pyproject.toml                # 📦 Project metadata and dependencies
+├── README.md                     # 📖 This comprehensive guide
+└── examples.sh                   # 🎬 Live demonstration script
+```
+
+## 🔄 Workflow Comparison
+
+### Benefits of Batch Processing
+
+The VEX Updater provides efficient batch processing capabilities:
+
+- ✅ **Batch Processing**: Handle multiple vulnerabilities at once
+- ✅ **Component Granularity**: Same CVE, different components, different decisions
+- ✅ **Change Detection**: Only update what's actually changed
+- ✅ **Safety Features**: Dry-run, backups, and validation
+- ✅ **Better UX**: Interactive guidance and rich feedback
+
+### Workflow Comparison
+
+**Single Vulnerability Processing:**
+```bash
+# Process each vulnerability individually
+vex-updater --cve-bin-json scan.json --vuln-id CVE-2021-44228 --status fixed
+vex-updater --cve-bin-json scan.json --vuln-id CVE-2022-1234 --status not_affected
+# ... repeat for each CVE
+```
+
+**Batch Processing (Recommended):**
+```bash
+# Process all vulnerabilities in one interactive session
+vex-updater --scan-report scan.json --vex-file project.vex
+# Interactive session handles all new CVEs automatically
+```
+
+### Command Compatibility
+
+**All commands work seamlessly!** The updater supports both approaches:
+
+```bash
+# ✅ Single vulnerability mode
+vex-updater --input-vex existing.json --vuln-id CVE-2021-44228 --status fixed
+
+# ✅ Batch processing mode
+vex-updater --scan-report scan.json --vex-file project.vex
 ```
 
 ## Error Handling
@@ -340,8 +480,184 @@ We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for guid
 - Submitting pull requests
 - Reporting issues and feature requests
 
+## 📚 Advanced Usage Guides
+
+### Getting Started with VEX Updating
+
+**First-Time Setup:**
+1. Install the tool following the [Quick Setup](#quick-setup-recommended) guide
+2. Run your first security scan: `cve-bin-tool . --format json -o initial_scan.json`
+3. Create a minimal VEX file or use an existing one
+4. Run the updater: `vex-updater --scan-report initial_scan.json --vex-file my_project.vex`
+
+### Understanding Component-Granular Triage
+
+**Why Component Granularity Matters:**
+```bash
+# Example: log4j vulnerability affects different components differently
+CVE-2021-44228:
+├── MyApp v1.0 uses log4j-core directly     → Status: affected (needs immediate patching)
+├── ThirdPartyLib v2.1 bundles log4j-api   → Status: not_affected (only interface, no execution)
+└── TestFramework v3.0 uses log4j v2.15.0  → Status: fixed (upgraded to safe version)
+```
+
+**Triage Best Practices:**
+- **not_affected + vulnerable_code_not_present**: Component doesn't include the vulnerable code
+- **not_affected + vulnerable_code_not_in_execute_path**: Code present but not executed
+- **affected**: Component is vulnerable and needs attention
+- **fixed**: Vulnerability has been patched or mitigated
+- **under_investigation**: Impact assessment in progress
+
+### Multi-format VEX Support
+
+**CycloneDX (Recommended):**
+```bash
+# Most common format, excellent tooling support
+vex-updater --scan-report scan.json --vex-file project.cyclonedx.json --format cyclonedx
+```
+
+**CSAF (Enterprise):**
+```bash
+# Common in enterprise environments, security advisory format
+vex-updater --scan-report scan.json --vex-file project.csaf.json --format csaf
+```
+
+**OpenVEX (Emerging):**
+```bash
+# Lightweight format for cloud-native environments
+vex-updater --scan-report scan.json --vex-file project.openvex.json --format openvex
+```
+
+### Integration with CI/CD Pipelines
+
+**GitHub Actions Example:**
+```yaml
+name: Update VEX Document
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM
+  workflow_dispatch:
+
+jobs:
+  update-vex:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run Security Scan
+        run: cve-bin-tool . --format json -o scan_results.json
+      
+      - name: Update VEX Document
+        run: |
+          vex-updater --scan-report scan_results.json \
+            --vex-file security/project.vex \
+            --auto-skip-existing \
+            --backup
+      
+      - name: Commit Updates
+        run: |
+          git add security/
+          git commit -m "docs: update VEX document with latest scan results"
+          git push
+```
+
+**Jenkins Pipeline Example:**
+```groovy
+pipeline {
+    agent any
+    triggers {
+        cron('H 2 * * *')
+    }
+    stages {
+        stage('Security Scan') {
+            steps {
+                sh 'cve-bin-tool . --format json -o scan_results.json'
+            }
+        }
+        stage('Update VEX') {
+            steps {
+                sh '''
+                    vex-updater --scan-report scan_results.json \
+                      --vex-file project_security.vex \
+                      --dry-run
+                '''
+            }
+        }
+    }
+}
+```
+
+### Batch Vulnerability Triage Best Practices
+
+**1. Regular Scanning Schedule:**
+- Daily: Critical production systems
+- Weekly: Development environments  
+- Monthly: Internal tools and dependencies
+
+**2. Triage Workflow:**
+```bash
+# Step 1: Preview changes
+vex-updater --scan-report latest.json --vex-file current.vex --diff-only
+
+# Step 2: Backup and update
+vex-updater --scan-report latest.json --vex-file current.vex --backup --interactive
+
+# Step 3: Validate results
+vex-updater --vex-file current.vex --validate-only
+```
+
+**3. Team Collaboration:**
+- Use `--dry-run` to share proposed changes with security team
+- Document impact statements thoroughly for audit trails
+- Regular review of `under_investigation` status items
+
+## 🔧 Troubleshooting
+
+### Common Issues and Solutions
+
+**Issue: "Format not detected"**
+```bash
+# Solution: Explicitly specify format
+vex-updater --scan-report scan.json --vex-file doc.json --format cyclonedx
+```
+
+**Issue: "No vulnerabilities found in scan"**
+```bash
+# Solution: Verify scan file format
+cat scan_results.json | jq '.vulnerabilities | length'
+```
+
+**Issue: "Permission denied on VEX file"**
+```bash
+# Solution: Use output to new file
+vex-updater --scan-report scan.json --vex-file readonly.vex --output-file updated.vex
+```
+
+**Issue: "Large scan report performance"**
+```bash
+# Solution: Use --diff-only first
+vex-updater --scan-report large_scan.json --vex-file project.vex --diff-only
+```
+
+### Getting Help
+
+**Built-in Guidance:**
+```bash
+# Get explanation of VEX concepts
+vex-updater --explain status
+vex-updater --explain justification
+vex-updater --explain workflow
+vex-updater --explain best-practices
+```
+
+**Verbose Debugging:**
+```bash
+# Enable detailed logging
+export VEX_DEBUG=1
+vex-updater --scan-report scan.json --vex-file project.vex --dry-run
+```
+
 ## Repository
 
-- **GitHub**: https://github.com/JigyasuRajput/vex-generate-tool
-- **Issues**: https://github.com/JigyasuRajput/vex-generate-tool/issues
-- **Pull Requests**: https://github.com/JigyasuRajput/vex-generate-tool/pulls
+- **GitHub**: https://github.com/JigyasuRajput/vex-updater-tool
+- **Issues**: https://github.com/JigyasuRajput/vex-updater-tool/issues
+- **Pull Requests**: https://github.com/JigyasuRajput/vex-updater-tool/pulls
