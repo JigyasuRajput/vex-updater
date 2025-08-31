@@ -66,40 +66,40 @@ $TOOL_PATH --scan-report data/samples/sample_input.json \
   --validate-only
 echo ""
 
-echo "🔧 LEGACY MODE: Backward Compatibility Examples"
+echo "🔧 SINGLE VULNERABILITY MODE: Single Vulnerability Operations"
 echo "=============================================="
 echo ""
 
-echo "6. Legacy Example 1: Single Vulnerability Update"
+echo "6. Single Vulnerability Example 1: Update Specific Vulnerability"
 echo "=============================================="
 $TOOL_PATH --input-vex data/samples/existing_vex_sample.json \
   --vuln-id CVE-2021-44228 \
   --status fixed \
-  --impact-statement "Updated via legacy mode - patched in version 2.15.0." \
-  --output example_legacy_fixed.json
+  --impact-statement "Updated via single vulnerability mode - patched in version 2.15.0." \
+--output example_single_vuln_fixed.json
 
-echo "Generated: example_legacy_fixed.json"
+echo "Generated: example_single_vuln_fixed.json"
 echo ""
 
-echo "7. Legacy Example 2: not_affected status with justification"
+echo "7. Single Vulnerability Example 2: not_affected status with justification"
 echo "========================================================"
 $TOOL_PATH --cve-bin-json data/samples/sample_input.json \
   --vuln-id CVE-2021-44228 \
   --status not_affected \
   --justification vulnerable_code_not_present \
   --impact-statement "The vulnerable function is never called in our product." \
-  --output example_legacy_not_affected.json
+  --output example_single_vuln_not_affected.json
 
-echo "Generated: example_legacy_not_affected.json"
+echo "Generated: example_single_vuln_not_affected.json"
 echo ""
 
-echo "8. Legacy Example 3: Output to stdout (no file)"
+echo "8. Single Vulnerability Example 3: Output to stdout (no file)"
 echo "=============================================="
 echo "Output will be printed below:"
 $TOOL_PATH --cve-bin-json data/samples/sample_input.json \
   --vuln-id CVE-2021-44228 \
   --status under_investigation \
-  --impact-statement "Legacy mode stdout example"
+  --impact-statement "Single vulnerability mode stdout example"
 echo ""
 
 echo "🧪 ADVANCED FEATURES: Error Handling and Safety"
@@ -122,7 +122,7 @@ echo "10a. Missing required arguments (new workflow):"
 $TOOL_PATH --scan-report data/samples/sample_input.json || echo "✅ Error correctly caught - missing --vex-file"
 echo ""
 
-echo "10b. Missing justification for not_affected (legacy):"
+echo "10b. Missing justification for not_affected (single vulnerability):"
 $TOOL_PATH --cve-bin-json data/samples/sample_input.json \
   --vuln-id CVE-2021-44228 \
   --status not_affected || echo "✅ Error correctly caught"
@@ -171,8 +171,8 @@ echo "=============================="
 echo "Primary Workflow Examples:"
 ls -la example_updated_with_backup.json example_multi_component.json production_ready_vex.json 2>/dev/null || echo "Files will be generated when examples run successfully"
 echo ""
-echo "Legacy Mode Examples:"
-ls -la example_legacy_*.json 2>/dev/null || echo "Legacy files will be generated when examples run successfully"
+echo "Single Vulnerability Mode Examples:"
+ls -la example_single_vuln_*.json 2>/dev/null || echo "Single vulnerability files will be generated when examples run successfully"
 echo ""
 echo "🚀 Next Steps:"
 echo "- Try interactive mode: vex-updater --scan-report your_scan.json --vex-file your_vex.json"

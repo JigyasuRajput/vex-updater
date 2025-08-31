@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# Alternative installation script for VEX Generate Tool
+# Alternative installation script for VEX Updater Tool
 # This script installs the package directly without virtual environment activation
 
 set -e
 
-echo "🚀 VEX Generate Tool - Direct Installation"
+echo "🚀 VEX Updater Tool - Direct Installation"
 echo "=========================================="
 echo ""
 
@@ -41,14 +41,14 @@ else
 fi
 
 # Install the package
-echo "🔧 Installing VEX Generate Tool..."
+echo "🔧 Installing VEX Updater Tool..."
 python3 -m pip install -e .
 
 echo ""
 echo "✅ Installation complete!"
 echo ""
 echo "To use the tool:"
-echo "vex-generate-tool --help"
+echo "vex-updater --help"
 echo ""
 
 if [ "$1" = "dev" ]; then
@@ -59,11 +59,11 @@ if [ "$1" = "dev" ]; then
 fi
 
 echo "🎯 Quick test:"
-if command -v vex-generate-tool &> /dev/null; then
-    vex-generate-tool --version
+if command -v vex-updater &> /dev/null; then
+    vex-updater --version
 else
-    echo "⚠️  Tool not found in PATH. Try: python3 -m vex_generate_tool.main --version"
+    echo "⚠️  Tool not found in PATH. Try: python3 -m vex_updater_tool.main --version"
 fi
 
 echo ""
-echo "🚀 Ready to generate VEX documents!"
+echo "🚀 Ready to update VEX documents!"

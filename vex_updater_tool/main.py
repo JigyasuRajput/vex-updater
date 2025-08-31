@@ -9,6 +9,7 @@ import argparse
 import sys
 import json
 import os
+import logging
 from typing import Optional
 
 from .updater import VEXUpdater
@@ -17,12 +18,50 @@ from .user_guidance import UserGuidance
 from .generator import VEXEditor
 
 
+def setup_logging(debug_level: str) -> None:
+    """Setup logging configuration based on debug level."""
+    # Map debug levels to logging levels
+    level_map = {
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        'critical': logging.CRITICAL
+    }
+    
+    log_level = level_map.get(debug_level.lower(), logging.INFO)
+    
+    # Configure logging
+    logging.basicConfig(
+        level=log_level,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+        datefmt='%Y-%m-%d %H:%M:%S'
+    )
+    
+    # Set specific logger levels for the application
+    loggers = [
+        'vex_updater_tool',
+        'vex_updater_tool.main',
+        'vex_updater_tool.updater',
+        'vex_updater_tool.scan_parser',
+        'vex_updater_tool.vex_parser',
+        'vex_updater_tool.diff_engine',
+        'vex_updater_tool.interactive_triage',
+        'vex_updater_tool.user_guidance',
+        'vex_updater_tool.generator'
+    ]
+    
+    for logger_name in loggers:
+        logging.getLogger(logger_name).setLevel(log_level)
+
+
 def create_parser() -> argparse.ArgumentParser:
     """Create and configure the argument parser."""
     parser = argparse.ArgumentParser(
         prog='vex-updater',
         description='Update VEX documents by comparing scan reports with existing VEX files',
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        allow_abbrev=False,
         epilog="""
 Examples:
   # Safe default - outputs to new file
@@ -37,10 +76,21 @@ Examples:
   # Dry run to see what would be updated
   vex-updater --scan-report latest_scan.json --vex-file project_vex.json --dry-run
 
-  # Legacy: Update specific vulnerability (backward compatibility)
+  # Debug mode with detailed logging
+  vex-updater --scan-report latest_scan.json --vex-file project_vex.json --debug debug
+
+  # Single vulnerability mode: Update specific vulnerability
   vex-updater --cve-bin-json scan.json --input-vex existing.json --vuln-id CVE-2021-44228 \\
     --status fixed --impact-statement "Patched in version 2.15.0"
         """
+    )
+    
+    # Debug option
+    parser.add_argument(
+        '--debug',
+        choices=['debug', 'info', 'warning', 'error', 'critical'],
+        default='warning',
+        help='Set debug level for detailed logging output (default: warning)'
     )
     
     # Primary updater arguments (new workflow)
@@ -92,6 +142,12 @@ Examples:
     )
     
     parser.add_argument(
+        '--no-interactive',
+        action='store_true',
+        help='Disable interactive triage session (run in batch mode)'
+    )
+    
+    parser.add_argument(
         '--dry-run',
         action='store_true',
         help='Show what would be updated without making changes'
@@ -109,7 +165,7 @@ Examples:
         help='Don\'t prompt for vulnerabilities already in VEX'
     )
     
-    # Legacy compatibility arguments
+    # Single vulnerability mode arguments
     parser.add_argument(
         '--cve-bin-json',
         help=' Path to the JSON output file from cve-bin-tool'
@@ -314,6 +370,10 @@ def validate_updater_arguments(args: argparse.Namespace) -> None:
     if getattr(args, 'dry_run', False) or getattr(args, 'diff_only', False):
         args.interactive = False
     
+    # Handle --no-interactive flag
+    if getattr(args, 'no_interactive', False):
+        args.interactive = False
+    
     explicit_modes = [
         getattr(args, 'dry_run', False),
         getattr(args, 'diff_only', False)
@@ -425,10 +485,10 @@ def show_explanation(topic: str, args: argparse.Namespace) -> None:
 
 
 def run_single_vuln_mode(args: argparse.Namespace) -> None:
-    """Run the tool in single vulnerability single-vulnerability mode."""
-    print("⚠️  Running in single vulnerability mode. Consider using the new updater workflow for better functionality.")
+    """Run the tool in single vulnerability mode."""
+    print("🚀 Running in single vulnerability mode.")
     
-    # Use the imported VEXEditor for backward compatibility
+    # Use the imported VEXEditor for single vulnerability operations
     editor = VEXEditor()
     
     if args.input_vex:
@@ -543,36 +603,51 @@ def run_updater_workflow(args: argparse.Namespace) -> None:
 
 def main() -> None:
     """Main entry point for the CLI application."""
+    logger = logging.getLogger(__name__)
+    
     parser = create_parser()
     args = parser.parse_args()
     
     try:
+        # Setup logging first
+        setup_logging(args.debug)
+        logger.info("Starting VEX Updater Tool")
+        logger.debug(f"Command line arguments: {args}")
+        
         # Handle explanation requests first
         if args.explain:
+            logger.info(f"Showing explanation for: {args.explain}")
             show_explanation(args.explain, args)
             return
         
         # Validate arguments
+        logger.debug("Validating command line arguments")
         validate_arguments(args)
         
         # Determine operation mode and execute
         is_single_vuln_mode = bool(args.cve_bin_json or args.input_vex or args.vuln_id or args.status)
         
         if is_single_vuln_mode:
+            logger.info("Running in single vulnerability mode")
             run_single_vuln_mode(args)
         else:
+            logger.info("Running in updater workflow mode")
             run_updater_workflow(args)
     
     except ValueError as e:
+        logger.error(f"Validation error: {e}")
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
     except FileNotFoundError as e:
+        logger.error(f"File not found: {e}")
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
     except KeyboardInterrupt:
+        logger.info("Operation cancelled by user")
         print("\n\nOperation cancelled by user.", file=sys.stderr)
         sys.exit(130)
     except Exception as e:
+        logger.error(f"Unexpected error: {e}", exc_info=True)
         print(f"Unexpected error: {e}", file=sys.stderr)
         sys.exit(1)
 
