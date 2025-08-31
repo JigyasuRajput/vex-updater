@@ -54,13 +54,13 @@ For the fastest setup, use the provided setup script:
 ```bash
 # Clone the repository
 git clone https://github.com/JigyasuRajput/vex-updater.git
-cd vex-updater-tool
+cd vex-updater
 
 # Quick setup for users
-./setup.sh
+./scripts/setup.sh
 
 # Or for development setup (includes testing tools)
-./setup.sh dev
+./scripts/setup.sh dev
 
 # Activate the environment and start using
 source .venv/bin/activate
@@ -74,7 +74,7 @@ vex-updater --help
 ```bash
 # Clone the repository
 git clone https://github.com/JigyasuRajput/vex-updater.git
-cd vex-updater-tool
+cd vex-updater
 
 # Create and activate virtual environment
 python -m venv .venv
@@ -95,7 +95,7 @@ pip install lib4vex>=0.2.0 cyclonedx-python-lib>=3.0.0
 
 # Clone and install
 git clone https://github.com/JigyasuRajput/vex-updater.git
-cd vex-edit-tool
+cd vex-updater
 pip install -e .
 ```
 
@@ -106,7 +106,7 @@ For contributing or development work:
 ```bash
 # Clone the repository
 git clone https://github.com/JigyasuRajput/vex-updater.git
-cd vex-generate-tool
+cd vex-updater
 
 # Create and activate virtual environment
 python -m venv .venv
@@ -190,6 +190,7 @@ vex-updater --cve-bin-json input.json --vuln-id CVE-2021-44228 --status not_affe
 - `--impact-statement`: Detailed description of the impact
 
 **Utility Options:**
+- `--debug`: Set debug level for detailed logging output (debug, info, warning, error, critical - default: warning)
 - `--explain`: Show detailed explanations (status, justification, format, workflow, best-practices)
 - `--validate-only`: Validate inputs without making changes
 - `--format`: Output format for new VEX documents (cyclonedx, csaf, openvex - default: cyclonedx)
@@ -257,6 +258,18 @@ vex-updater --scan-report microservices_scan.json --vex-file services.vex
 # CVE-2021-44228 in elasticsearch@7.15.0  → Set as "fixed"
 ```
 
+**Example 5: Debug Mode**
+```bash
+# Run with detailed debug logging
+vex-updater --scan-report scan.json --vex-file project.vex --debug debug
+
+# Run with info level logging
+vex-updater --scan-report scan.json --vex-file project.vex --debug info
+
+# Run with error level logging only
+vex-updater --scan-report scan.json --vex-file project.vex --debug error
+```
+
 ### 🔧 Single Vulnerability Mode Examples
 
 **Example 5: Single Vulnerability Update**
@@ -280,8 +293,9 @@ vex-updater --cve-bin-json scan_results.json \
 
 ## Input Format
 
-The tool expects JSON input in the format produced by cve-bin-tool:
+The tool supports multiple JSON input formats produced by cve-bin-tool:
 
+### Standard JSON Format
 ```json
 {
   "components": [
@@ -299,6 +313,30 @@ The tool expects JSON input in the format produced by cve-bin-tool:
   ]
 }
 ```
+
+### JSON2 Format (Newer cve-bin-tool versions)
+```json
+{
+  "metadata": {
+    "timestamp": "2024-01-01T00:00:00Z"
+  },
+  "results": [
+    {
+      "cve_id": "CVE-2021-44228",
+      "package": {
+        "name": "log4j-core",
+        "version": "2.14.1",
+        "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
+      },
+      "description": "Remote code execution in log4j.",
+      "severity": "HIGH",
+      "cvss_score": 9.8
+    }
+  ]
+}
+```
+
+The tool automatically detects and handles both formats, so you can use either `cve-bin-tool . --format json` or `cve-bin-tool . --format json2`.
 
 ## Output Formats
 
@@ -652,8 +690,13 @@ vex-updater --explain best-practices
 **Verbose Debugging:**
 ```bash
 # Enable detailed logging
-export VEX_DEBUG=1
-vex-updater --scan-report scan.json --vex-file project.vex --dry-run
+vex-updater --scan-report scan.json --vex-file project.vex --debug debug
+
+# Enable info level logging
+vex-updater --scan-report scan.json --vex-file project.vex --debug info
+
+# Enable error level logging only
+vex-updater --scan-report scan.json --vex-file project.vex --debug error
 ```
 
 ## Repository

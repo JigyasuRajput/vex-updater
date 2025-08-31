@@ -255,7 +255,7 @@ class VEXParser:
         # Use the new get_vulnerabilities_from_vex method for consistency
         return self.get_vulnerabilities_from_vex(vex_document)
     
-    # Legacy mapping methods for backward compatibility
+    # Mapping methods for compatibility
     def _map_cyclonedx_state_to_status(self, state: str) -> str:
         """Map CycloneDX vulnerability analysis state to VEX status."""
         mapping = {

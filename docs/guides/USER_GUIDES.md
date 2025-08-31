@@ -5,10 +5,12 @@
 1. [Getting Started with VEX Updating](#getting-started-with-vex-updating)
 2. [Understanding Component-Granular Triage](#understanding-component-granular-triage)
 3. [Multi-format VEX Support](#multi-format-vex-support)
-4. [Integration with CI/CD Pipelines](#integration-with-cicd-pipelines)
-5. [Batch Vulnerability Triage Best Practices](#batch-vulnerability-triage-best-practices)
-6. [Advanced Workflows](#advanced-workflows)
-7. [Troubleshooting Common Issues](#troubleshooting-common-issues)
+4. [Scan Format Support](#scan-format-support)
+5. [Debug and Logging](#debug-and-logging)
+6. [Integration with CI/CD Pipelines](#integration-with-cicd-pipelines)
+7. [Batch Vulnerability Triage Best Practices](#batch-vulnerability-triage-best-practices)
+8. [Advanced Workflows](#advanced-workflows)
+9. [Troubleshooting Common Issues](#troubleshooting-common-issues)
 
 ---
 
@@ -18,11 +20,15 @@
 
 **Step 1: Prerequisites**
 ```bash
-# Ensure you have a recent security scan
+# Ensure you have a recent security scan (supports both JSON and JSON2 formats)
 cve-bin-tool . --format json -o my_scan.json
+# or
+cve-bin-tool . --format json2 -o my_scan.json
 
 # Verify the scan contains vulnerabilities
 cat my_scan.json | jq '.vulnerabilities | length'
+# or for JSON2 format
+cat my_scan.json | jq '.results | length'
 ```
 
 **Understanding the Workflow:**
@@ -233,6 +239,177 @@ vex-updater --scan-report scan.json --vex-file file.json --format cyclonedx
 
 ---
 
+## 📊 Scan Format Support
+
+### Supported Scan Formats
+
+The VEX Updater Tool automatically detects and supports multiple output formats from cve-bin-tool:
+
+#### Standard JSON Format
+```json
+{
+  "components": [
+    {
+      "name": "log4j-core",
+      "version": "2.14.1",
+      "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1",
+      "vulnerabilities": [
+        {
+          "vuln_id": "CVE-2021-44228",
+          "description": "Remote code execution in log4j."
+        }
+      ]
+    }
+  ]
+}
+```
+
+#### JSON2 Format (Newer cve-bin-tool versions)
+```json
+{
+  "metadata": {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "tool": "cve-bin-tool",
+    "version": "2.0.0"
+  },
+  "results": [
+    {
+      "cve_id": "CVE-2021-44228",
+      "package": {
+        "name": "log4j-core",
+        "version": "2.14.1",
+        "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
+      },
+      "description": "Remote code execution in log4j.",
+      "severity": "HIGH",
+      "cvss_score": 9.8
+    }
+  ]
+}
+```
+
+### Automatic Format Detection
+
+The tool automatically detects the scan format and converts it to the internal components format:
+
+```bash
+# Works with both formats automatically
+cve-bin-tool . --format json -o scan.json
+cve-bin-tool . --format json2 -o scan.json
+vex-updater --scan-report scan.json --vex-file project.vex
+```
+
+### Format Validation
+
+If you encounter format issues, you can validate your scan file:
+
+```bash
+# Check scan file structure
+cat scan.json | jq 'keys'
+
+# For JSON format
+cat scan.json | jq '.components | length'
+
+# For JSON2 format  
+cat scan.json | jq '.results | length'
+```
+
+---
+
+## 🔍 Debug and Logging
+
+### Debug Levels
+
+The VEX Updater Tool provides comprehensive logging with five debug levels:
+
+```bash
+# Debug level - most verbose
+vex-updater --scan-report scan.json --vex-file project.vex --debug debug
+
+# Info level - general flow information
+vex-updater --scan-report scan.json --vex-file project.vex --debug info
+
+# Warning level - default, shows warnings and errors
+vex-updater --scan-report scan.json --vex-file project.vex --debug warning
+
+# Error level - only errors
+vex-updater --scan-report scan.json --vex-file project.vex --debug error
+
+# Critical level - only critical errors
+vex-updater --scan-report scan.json --vex-file project.vex --debug critical
+```
+
+### What Each Level Shows
+
+**Debug Level (`--debug debug`):**
+- Detailed parsing information
+- Component processing steps
+- Format detection details
+- Internal conversion steps
+- File I/O operations
+
+**Info Level (`--debug info`):**
+- Format detection results
+- Component counts
+- Vulnerability processing
+- Conversion summaries
+- Operation progress
+
+**Warning Level (default):**
+- Format warnings
+- Missing data alerts
+- Validation issues
+- Performance warnings
+
+**Error Level (`--debug error`):**
+- File not found errors
+- Format parsing errors
+- Validation failures
+- Processing errors
+
+### Debug Output Example
+
+```bash
+$ vex-updater --scan-report scan.json --vex-file project.vex --debug debug
+
+2024-01-01 10:00:00 - vex_updater_tool.main - INFO - Starting VEX Updater Tool
+2024-01-01 10:00:00 - vex_updater_tool.main - DEBUG - Command line arguments: Namespace(...)
+2024-01-01 10:00:00 - vex_updater_tool.scan_parser - DEBUG - Loading cve-bin-tool data from: scan.json
+2024-01-01 10:00:00 - vex_updater_tool.scan_parser - DEBUG - Successfully loaded JSON data with keys: ['metadata', 'results']
+2024-01-01 10:00:00 - vex_updater_tool.scan_parser - INFO - Detected format: json2
+2024-01-01 10:00:00 - vex_updater_tool.scan_parser - DEBUG - Processing 2 results from JSON2 format
+2024-01-01 10:00:00 - vex_updater_tool.scan_parser - DEBUG - Created new component entry: log4j-core:2.14.1
+2024-01-01 10:00:00 - vex_updater_tool.scan_parser - INFO - JSON2 conversion complete: 2 components created
+```
+
+### Using Debug for Troubleshooting
+
+**Diagnose Format Issues:**
+```bash
+# Check what format was detected
+vex-updater --scan-report scan.json --vex-file project.vex --debug debug | grep "Detected format"
+
+# See conversion details
+vex-updater --scan-report scan.json --vex-file project.vex --debug debug | grep "conversion"
+```
+
+**Troubleshoot Processing Issues:**
+```bash
+# See component processing details
+vex-updater --scan-report scan.json --vex-file project.vex --debug debug | grep "component"
+
+# Check for validation errors
+vex-updater --scan-report scan.json --vex-file project.vex --debug error
+```
+
+**Performance Analysis:**
+```bash
+# Monitor processing steps
+vex-updater --scan-report large_scan.json --vex-file project.vex --debug info | grep "Processing"
+```
+
+---
+
 ## 🔄 Integration with CI/CD Pipelines
 
 ### GitHub Actions Integration
@@ -275,7 +452,8 @@ jobs:
           vex-updater --scan-report scan_results.json \
             --vex-file security/project.vex \
             --auto-skip-existing \
-            --backup
+            --backup \
+            --debug warning
             
       - name: Commit Changes
         run: |
@@ -311,7 +489,8 @@ jobs:
           cve-bin-tool . --format json -o scan_results.json
           vex-updater --scan-report scan_results.json \
             --vex-file security/project.vex \
-            --dry-run > vex_preview.txt
+            --dry-run \
+            --debug info > vex_preview.txt
             
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
@@ -348,10 +527,10 @@ pipeline {
         stage('VEX Update Preview') {
             steps {
                 script {
-                    def preview = sh(
-                        script: 'vex-updater --scan-report ${SCAN_FILE} --vex-file ${VEX_FILE} --dry-run',
-                        returnStdout: true
-                    ).trim()
+                                    def preview = sh(
+                    script: 'vex-updater --scan-report ${SCAN_FILE} --vex-file ${VEX_FILE} --dry-run --debug info',
+                    returnStdout: true
+                ).trim()
                     
                     echo "VEX Update Preview:\n${preview}"
                     
@@ -374,14 +553,15 @@ pipeline {
                     vex-updater --scan-report ${SCAN_FILE} \
                       --vex-file ${VEX_FILE} \
                       --auto-skip-existing \
-                      --backup
+                      --backup \
+                      --debug warning
                 '''
             }
         }
         
         stage('Validate Results') {
             steps {
-                sh 'vex-updater --vex-file ${VEX_FILE} --validate-only'
+                sh 'vex-updater --vex-file ${VEX_FILE} --validate-only --debug info'
             }
         }
     }
@@ -431,8 +611,8 @@ vex-update:
   before_script:
     - pip install vex-updater-tool
   script:
-    - vex-updater --scan-report $SCAN_FILE --vex-file $VEX_FILE --dry-run
-    - vex-updater --scan-report $SCAN_FILE --vex-file $VEX_FILE --auto-skip-existing --backup
+    - vex-updater --scan-report $SCAN_FILE --vex-file $VEX_FILE --dry-run --debug info
+    - vex-updater --scan-report $SCAN_FILE --vex-file $VEX_FILE --auto-skip-existing --backup --debug warning
   artifacts:
     paths:
       - security/
@@ -447,7 +627,7 @@ vex-validate:
   before_script:
     - pip install vex-updater-tool
   script:
-    - vex-updater --vex-file $VEX_FILE --validate-only
+    - vex-updater --vex-file $VEX_FILE --validate-only --debug info
 ```
 
 ---
@@ -661,6 +841,9 @@ vex-updater --vex-file production.vex \
 cat scan_results.json | jq '.vulnerabilities | length'
 cat scan_results.json | jq '.results | length'  
 cat scan_results.json | jq 'keys'
+
+# Use debug mode to see format detection
+vex-updater --scan-report scan_results.json --vex-file project.vex --debug debug | grep "Detected format"
 ```
 
 **Solutions:**
@@ -671,9 +854,11 @@ head -20 scan_results.json
 
 # Re-run scan with correct format
 cve-bin-tool . --format json -o corrected_scan.json
+# or
+cve-bin-tool . --format json2 -o corrected_scan.json
 
 # Check for alternate data structures
-vex-updater --scan-report scan_results.json --debug-parser
+vex-updater --scan-report scan_results.json --debug debug
 ```
 
 ### Issue 2: "Component PURL parsing errors"
@@ -712,7 +897,42 @@ vex-updater --scan-report scan_results.json \
 cve-bin-tool . --format json --include-purl -o fixed_scan.json
 ```
 
-### Issue 3: "VEX format detection failed"
+### Issue 3: "Scan format not recognized"
+
+**Symptoms:**
+```
+❌ Error: Input JSON format not recognized. Expected cve-bin-tool JSON or JSON2 output.
+```
+
+**Diagnosis:**
+```bash
+# Check scan file structure
+cat scan_results.json | jq 'keys'
+
+# Use debug mode to see what was detected
+vex-updater --scan-report scan_results.json --vex-file project.vex --debug debug
+
+# Check for expected fields
+cat scan_results.json | jq '.components | length' 2>/dev/null || echo "No components field"
+cat scan_results.json | jq '.results | length' 2>/dev/null || echo "No results field"
+cat scan_results.json | jq '.vulnerabilities | length' 2>/dev/null || echo "No vulnerabilities field"
+```
+
+**Solutions:**
+```bash
+# Ensure scan was run with correct format
+cve-bin-tool . --format json -o scan_results.json
+# or
+cve-bin-tool . --format json2 -o scan_results.json
+
+# Check if scan file is corrupted
+cat scan_results.json | jq '.' > /dev/null && echo "Valid JSON" || echo "Invalid JSON"
+
+# Try with debug mode for more details
+vex-updater --scan-report scan_results.json --vex-file project.vex --debug debug
+```
+
+### Issue 4: "VEX format detection failed"
 
 **Symptoms:**
 ```
@@ -745,7 +965,7 @@ vex-updater --convert-format \
   --output converted.vex
 ```
 
-### Issue 4: "Interactive mode hangs in CI/CD"
+### Issue 5: "Interactive mode hangs in CI/CD"
 
 **Symptoms:**
 ```
@@ -782,7 +1002,7 @@ else
 fi
 ```
 
-### Issue 5: "Large scan performance"
+### Issue 6: "Large scan performance"
 
 **Symptoms:**
 ```
@@ -828,11 +1048,13 @@ vex-updater --scan-report enterprise_scan.json \
 **Debug Mode:**
 ```bash
 # Enable verbose logging
-export VEX_DEBUG=1
-vex-updater --scan-report scan.json --vex-file project.vex --dry-run
+vex-updater --scan-report scan.json --vex-file project.vex --debug debug
 
-# Generate debug report
-vex-updater --debug-report debug_info.json
+# Enable info level logging
+vex-updater --scan-report scan.json --vex-file project.vex --debug info
+
+# Enable error level logging only
+vex-updater --scan-report scan.json --vex-file project.vex --debug error
 ```
 
 **Community Support:**

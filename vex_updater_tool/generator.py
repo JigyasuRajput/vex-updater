@@ -1,5 +1,5 @@
 """
-VEX Editor - Legacy compatibility layer for backward compatibility.
+VEX Editor - Single vulnerability operations and VEX document generation.
 
 This module provides backward compatibility with the old VEXEditor interface
 while using the new modular architecture internally.
@@ -22,7 +22,7 @@ from .scan_parser import ScanParser
 
 
 class VEXEditor:
-    """Legacy VEX editor for backward compatibility - uses new modular architecture internally."""
+    """VEX editor for single vulnerability operations - uses new modular architecture internally."""
     
     VALID_STATUSES = {
         VEXStatus.NOT_AFFECTED,
@@ -161,7 +161,7 @@ class VEXEditor:
     
     def _generate_cyclonedx_document(self, cve_bin_data: Dict[str, Any], vuln_id: str, status: str, 
                                    justification: Optional[str] = None, impact_statement: Optional[str] = None) -> str:
-        """Generate a CycloneDX VEX document (legacy method for backward compatibility)."""
+        """Generate a CycloneDX VEX document (single vulnerability method)."""
         # Find the component with the specified vulnerability
         comp_data = self.find_component_with_vulnerability(cve_bin_data, vuln_id)
         if not comp_data:
@@ -377,7 +377,7 @@ class VEXEditor:
         """Edit vulnerability information in an existing VEX document using lib4vex."""
         return self.vex_parser.update_vex_vulnerability(vex_document, vuln_id, status, justification, impact_statement)
     
-    # Legacy format-specific methods removed - now handled by lib4vex via vex_parser
+    # Format-specific methods removed - now handled by lib4vex via vex_parser
     
     def _map_status_to_cyclonedx_state(self, status: str) -> str:
         """Map VEX status to CycloneDX vulnerability analysis state string."""

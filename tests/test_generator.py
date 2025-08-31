@@ -119,7 +119,7 @@ class TestVEXEditor:
             temp_file = f.name
         
         try:
-            with pytest.raises(ValueError, match="must contain either 'components' or 'vulnerabilities' field"):
+            with pytest.raises(ValueError, match="Input JSON format not recognized"):
                 self.editor.load_cve_bin_tool_data(temp_file)
         finally:
             os.unlink(temp_file)

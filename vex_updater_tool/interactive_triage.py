@@ -348,14 +348,14 @@ class InteractiveTriage:
             return self._alternative_triage(diff_result)
     
     def _alternative_triage(self, diff_result: Any) -> Dict[str, Dict[str, Any]]:
-        """Legacy triage implementation."""
-        print("⚠️  Legacy triage mode - limited functionality")
+        """Basic triage implementation."""
+        print("⚠️  Basic triage mode - limited functionality")
         return {}
     
     def run_batch_triage(self, diff_result: Any, 
                         default_decisions: Dict[str, Dict[str, Any]]) -> Dict[str, Dict[str, Any]]:
         """
-        Legacy batch triage method.
+        Basic batch triage method.
         
         Args:
             diff_result: Results from diff analysis

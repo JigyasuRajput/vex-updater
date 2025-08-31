@@ -1,11 +1,11 @@
 #!/bin/bash
 
-# VEX Generate Tool - Quick Setup Script
-# This script helps users quickly set up the VEX Generate Tool
+# VEX Updater Tool - Quick Setup Script
+# This script helps users quickly set up the VEX Updater Tool
 
 set -e
 
-echo "🚀 VEX Generate Tool - Quick Setup"
+echo "🚀 VEX Updater Tool - Quick Setup"
 echo "=================================="
 echo ""
 
@@ -67,7 +67,7 @@ else
 fi
 
 # Install the package
-echo "🔧 Installing VEX Generate Tool..."
+echo "🔧 Installing VEX Updater Tool..."
 $PIP_CMD install -e .
 
 echo ""
@@ -75,24 +75,24 @@ echo "✅ Setup complete!"
 echo ""
 echo "To use the tool:"
 echo "1. Activate the virtual environment: source .venv/bin/activate"
-echo "   (If activation fails, use: .venv/bin/vex-generate-tool directly)"
-echo "2. Run the tool: vex-generate-tool --help"
+echo "   (If activation fails, use: .venv/bin/vex-updater directly)"
+echo "2. Run the tool: vex-updater --help"
 echo ""
 
 if [ "$1" = "dev" ]; then
     echo "Development setup complete! You can also:"
     echo "• Run tests: .venv/bin/pytest"
     echo "• Run examples: ./examples.sh"
-    echo "• Check code quality: .venv/bin/black vex_generate_tool/ tests/"
+    echo "• Check code quality: .venv/bin/black vex_updater_tool/ tests/"
     echo ""
 fi
 
 echo "🎯 Quick test:"
-if command -v .venv/bin/vex-generate-tool &> /dev/null; then
-    .venv/bin/vex-generate-tool --version
+if command -v .venv/bin/vex-updater &> /dev/null; then
+    .venv/bin/vex-updater --version
 else
-    echo "⚠️  Tool not found in PATH. Try: .venv/bin/vex-generate-tool --version"
+    echo "⚠️  Tool not found in PATH. Try: .venv/bin/vex-updater --version"
 fi
 
 echo ""
-echo "🚀 Ready to generate VEX documents!"
+echo "🚀 Ready to update VEX documents!"
