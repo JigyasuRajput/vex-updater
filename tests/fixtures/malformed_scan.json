@@ -1,0 +1,10 @@
+{
+  "invalid_structure": "this is not a valid scan format",
+  "missing_vulnerabilities": true,
+  "components": [
+    {
+      "name": "test-component",
+      "version": "1.0.0"
+    }
+  ]
+}

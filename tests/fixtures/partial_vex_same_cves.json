@@ -1,0 +1,43 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2023-01-01T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "vex-generate",
+        "name": "vex-updater",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "vulnerabilities": [
+    {
+      "id": "CVE-2021-44228",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "component_not_present",
+        "response": ["will_not_fix"]
+      },
+      "affects": [
+        {
+          "ref": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
+        }
+      ]
+    },
+    {
+      "id": "CVE-2023-2976",
+      "analysis": {
+        "state": "not_affected",
+        "justification": "vulnerable_code_not_present",
+        "response": ["will_not_fix"]
+      },
+      "affects": [
+        {
+          "ref": "pkg:maven/com.google.guava/guava@28.0-jre"
+        }
+      ]
+    }
+  ]
+}

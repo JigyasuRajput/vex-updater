@@ -1,0 +1,104 @@
+{
+  "vulnerabilities": [
+    {
+      "cve_id": "CVE-2021-44228",
+      "component": {
+        "name": "log4j-core",
+        "version": "2.14.1",
+        "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
+      },
+      "severity": "CRITICAL",
+      "description": "Apache Log4j2 JNDI features do not protect against attacker controlled LDAP and other JNDI related endpoints"
+    },
+    {
+      "cve_id": "CVE-2023-2976",
+      "component": {
+        "name": "guava",
+        "version": "28.0-jre",
+        "purl": "pkg:maven/com.google.guava/guava@28.0-jre"
+      },
+      "severity": "HIGH",
+      "description": "Google Guava vulnerability in RateLimiter"
+    },
+    {
+      "cve_id": "CVE-2022-23307",
+      "component": {
+        "name": "log4j-core",
+        "version": "2.14.1",
+        "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
+      },
+      "severity": "MEDIUM",
+      "description": "Apache Log4j2 vulnerability in JMSAppender"
+    },
+    {
+      "cve_id": "CVE-2021-4104",
+      "component": {
+        "name": "log4j-core",
+        "version": "2.14.1",
+        "purl": "pkg:maven/org.apache.logging.log4j/log4j-core@2.14.1"
+      },
+      "severity": "HIGH",
+      "description": "Apache Log4j2 vulnerability in JMSAppender"
+    },
+    {
+      "cve_id": "CVE-2023-1234",
+      "component": {
+        "name": "spring-core",
+        "version": "5.3.20",
+        "purl": "pkg:maven/org.springframework/spring-core@5.3.20"
+      },
+      "severity": "MEDIUM",
+      "description": "Spring Framework vulnerability"
+    },
+    {
+      "cve_id": "CVE-2023-5678",
+      "component": {
+        "name": "jackson-databind",
+        "version": "2.13.4",
+        "purl": "pkg:maven/com.fasterxml.jackson.core/jackson-databind@2.13.4"
+      },
+      "severity": "HIGH",
+      "description": "Jackson Databind vulnerability"
+    },
+    {
+      "cve_id": "CVE-2023-9012",
+      "component": {
+        "name": "tomcat",
+        "version": "9.0.65",
+        "purl": "pkg:maven/org.apache.tomcat/tomcat@9.0.65"
+      },
+      "severity": "LOW",
+      "description": "Apache Tomcat vulnerability"
+    },
+    {
+      "cve_id": "CVE-2023-3456",
+      "component": {
+        "name": "slf4j-api",
+        "version": "1.7.36",
+        "purl": "pkg:maven/org.slf4j/slf4j-api@1.7.36"
+      },
+      "severity": "MEDIUM",
+      "description": "SLF4J vulnerability"
+    },
+    {
+      "cve_id": "CVE-2023-7890",
+      "component": {
+        "name": "commons-io",
+        "version": "2.11.0",
+        "purl": "pkg:maven/commons-io/commons-io@2.11.0"
+      },
+      "severity": "HIGH",
+      "description": "Apache Commons IO vulnerability"
+    },
+    {
+      "cve_id": "CVE-2023-1111",
+      "component": {
+        "name": "commons-text",
+        "version": "1.10.0",
+        "purl": "pkg:maven/org.apache.commons/commons-text@1.10.0"
+      },
+      "severity": "CRITICAL",
+      "description": "Apache Commons Text vulnerability"
+    }
+  ]
+}

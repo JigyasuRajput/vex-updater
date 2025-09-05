@@ -225,6 +225,7 @@ example*.json
 output_example.json
 *.json
 !sample_input.json
-
+!tests/fixtures/*.json
+!tests/fixtures/**/*.json
 # Log files
 *.log

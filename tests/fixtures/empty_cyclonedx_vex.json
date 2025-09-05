@@ -1,0 +1,16 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.4",
+  "version": 1,
+  "metadata": {
+    "timestamp": "2023-01-01T00:00:00Z",
+    "tools": [
+      {
+        "vendor": "vex-generate",
+        "name": "vex-updater",
+        "version": "1.0.0"
+      }
+    ]
+  },
+  "vulnerabilities": []
+}
